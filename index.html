@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiniGoogle - 1998</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:   #4285F4;
+    --red:    #EA4335;
+    --yellow: #FBBC05;
+    --green:  #34A853;
+    --text:   #202124;
+    --muted:  #70757a;
+    --border: #dfe1e5;
+    --bg:     #f8f9fa;
+    --white:  #ffffff;
+    --card-shadow: 0 1px 6px rgba(32,33,36,.18);
+    --card-hover:  0 4px 16px rgba(32,33,36,.22);
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ══════════════════════════════════════
+     HEADER
+  ══════════════════════════════════════ */
+  header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+
+  /* Logo */
+  .logo { font-size: 26px; font-weight: 900; letter-spacing: -1px; white-space: nowrap; line-height: 1; }
+  .logo .G { color: var(--blue);   }
+  .logo .o1{ color: var(--red);    }
+  .logo .o2{ color: var(--yellow); }
+  .logo .g { color: var(--blue);   }
+  .logo .l { color: var(--green);  }
+  .logo .e { color: var(--red);    }
+  .logo sub { font-size: 10px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+
+  /* Search box */
+  .search-wrap {
+    flex: 1;
+    max-width: 620px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 7px 16px;
+    background: var(--white);
+    box-shadow: var(--card-shadow);
+    transition: box-shadow .2s, border-color .2s;
+  }
+  .search-wrap:focus-within {
+    box-shadow: 0 1px 10px rgba(0,0,0,.2);
+    border-color: transparent;
+  }
+  .search-wrap svg { flex-shrink: 0; color: var(--muted); margin-right: 10px; }
+  .search-wrap input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    color: var(--text);
+    background: transparent;
+  }
+  .search-wrap input::placeholder { color: #bbb; }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-blue  { background: var(--blue);  color: #fff; }
+  .btn-blue:hover  { box-shadow: 0 2px 8px rgba(66,133,244,.5); }
+  .btn-green { background: var(--green); color: #fff; font-size: 12px; }
+  .btn-green:hover { box-shadow: 0 2px 8px rgba(52,168,83,.5); }
+
+  /* ══════════════════════════════════════
+     STATS BAR
+  ══════════════════════════════════════ */
+  .stats-bar {
+    padding: 7px 28px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--white);
+    border-bottom: 1px solid #ebebeb;
+    display: none;
+  }
+  .stats-bar b { color: var(--text); }
+
+  /* ══════════════════════════════════════
+     HERO (welcome screen)
+  ══════════════════════════════════════ */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 70px 20px 50px;
+    text-align: center;
+  }
+  .hero-logo {
+    font-size: 80px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .hero-logo .G  { color: var(--blue);   }
+  .hero-logo .o1 { color: var(--red);    }
+  .hero-logo .o2 { color: var(--yellow); }
+  .hero-logo .g  { color: var(--blue);   }
+  .hero-logo .l  { color: var(--green);  }
+  .hero-logo .e  { color: var(--red);    }
+  .hero-year { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .hero p { font-size: 15px; color: var(--muted); max-width: 480px; line-height: 1.6; margin-bottom: 28px; }
+  .hero .hero-btn { padding: 13px 40px; font-size: 16px; border-radius: 8px; }
+
+  /* ══════════════════════════════════════
+     RESULTS GRID
+  ══════════════════════════════════════ */
+  .results-grid {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  .col { padding: 0 20px; }
+  .col-left  { border-right: 2px dashed #e0e0e0; padding-right: 28px; }
+  .col-right { padding-left: 28px; }
+
+  /* Column header */
+  .col-head { margin-bottom: 14px; }
+  .col-title { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .col-sub   { font-size: 12px; color: var(--muted); font-style: italic; }
+
+  /* Explainer */
+  .explainer {
+    border-radius: 8px;
+    padding: 11px 15px;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .explainer-red   { background: #fff5f5; border: 1px solid #fecaca; color: #7f1d1d; }
+  .explainer-green { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+  .explainer b { font-size: 13px; }
+
+  /* ── Result Card ── */
+  .card {
+    background: var(--white);
+    border: 1px solid #e8eaed;
+    border-radius: 10px;
+    padding: 15px 16px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .2s, transform .15s;
+  }
+  .card:hover { box-shadow: var(--card-hover); transform: translateY(-1px); }
+
+  .card-rank {
+    position: absolute;
+    top: 12px; right: 13px;
+    font-size: 11px; font-weight: 700;
+    color: #fff; padding: 2px 8px; border-radius: 10px;
+  }
+  .rank-red   { background: var(--red);   }
+  .rank-green { background: var(--green); }
+
+  .card-url {
+    font-size: 14px; font-weight: 700; color: #1a0dab;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+    margin-bottom: 5px; cursor: default;
+  }
+
+  .card-snippet { font-size: 13px; color: #4d5156; line-height: 1.5; margin-bottom: 10px; }
+  .card-snippet mark { background: #fff3cd; color: #7c5a00; font-weight: 700; border-radius: 2px; padding: 0 2px; }
+
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .bar-label { font-size: 11px; color: var(--muted); min-width: 120px; }
+  .bar-track { flex: 1; height: 7px; background: #e8eaed; border-radius: 4px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 4px; transition: width .7s cubic-bezier(.4,0,.2,1); }
+  .bar-val   { font-size: 11px; font-weight: 700; min-width: 38px; text-align: right; }
+  .fill-red   { background: linear-gradient(90deg,#EA4335,#ff7961); }
+  .fill-green { background: linear-gradient(90deg,#34A853,#69f0ae); }
+
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .badge-spam    { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+  .badge-trusted { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+
+  .link-hint { font-size: 11px; color: #aaa; margin-top: 5px; }
+  .link-hint b { color: var(--green); }
+
+  .spam-notice {
+    background: #fff8e1; border: 1px solid #ffe082;
+    border-radius: 6px; padding: 7px 11px;
+    font-size: 11px; color: #6d4c00; margin-top: 6px;
+  }
+
+  /* ══════════════════════════════════════
+     LINK GRAPH
+  ══════════════════════════════════════ */
+  .graph-section {
+    max-width: 1360px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+    display: none;
+  }
+  .graph-box { background: var(--white); border: 1px solid #e8eaed; border-radius: 10px; padding: 18px 20px; }
+  .graph-box h3 { font-size: 14px; color: var(--text); margin-bottom: 12px; }
+  .graph-nodes { display: flex; flex-wrap: wrap; gap: 10px; }
+  .g-node {
+    background: #e8f0fe; border: 2px solid var(--blue);
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 12px; color: #1a0dab; font-weight: 600;
+    cursor: default; transition: background .15s;
+  }
+  .g-node:hover { background: #d2e3fc; }
+  .g-node span { display: block; font-size: 10px; color: var(--green); font-weight: 700; margin-top: 3px; }
+
+  /* ══════════════════════════════════════
+     FOOTER
+  ══════════════════════════════════════ */
+  footer {
+    text-align: center; padding: 20px;
+    color: var(--muted); font-size: 12px;
+    border-top: 1px solid #e8eaed;
+  }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════ */
+  @media (max-width: 720px) {
+    .results-grid { grid-template-columns: 1fr; }
+    .col-left  { border-right: none; border-bottom: 2px dashed #e0e0e0; padding: 0 0 24px; }
+    .col-right { padding: 24px 0 0; }
+    header { flex-wrap: wrap; }
+    .search-wrap { order: 3; max-width: 100%; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span class="G">M</span><span class="o1">i</span><span class="o2">n</span><span class="g">i</span><span class="l">G</span><span class="e">o</span><span class="G">o</span><span class="o1">g</span><span class="o2">l</span><span class="g">e</span>
+    <sub>1998</sub>
+  </div>
+
+  <div class="search-wrap">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+      <path d="M20 20l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <input id="searchInput" type="text" placeholder="Search the web..." value="pizza" />
+  </div>
+
+  <button class="btn btn-blue" onclick="doSearch()">Search!</button>
+  <button class="btn btn-green" id="addBtn" onclick="addSpamPages()">➕ Add 3 fake pages</button>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- HERO -->
+<div class="hero" id="hero">
+  <div class="hero-logo">
+    <span class="G">M</span><span class="o1">i</span><span class="o2">n</span><span class="g">i</span><span class="l">G</span><span class="e">o</span><span class="G">o</span><span class="o1">g</span><span class="o2">l</span><span class="e">e</span>
+  </div>
+  <div class="hero-year">est. 1998 · 6 pages indexed</div>
+  <p>Search our tiny web and discover <strong>why PageRank changed the internet</strong> — keyword spammers vs trusted links, side by side.</p>
+  <button class="btn btn-blue hero-btn" onclick="doSearch()">🍕 Search for "pizza"</button>
+</div>
+
+<!-- RESULTS GRID -->
+<div class="results-grid" id="resultsGrid">
+  <!-- LEFT: Old Way -->
+  <div class="col col-left">
+    <div class="col-head">
+      <div class="col-title">🔴 Old Way</div>
+      <div class="col-sub">They count how many times the word appears</div>
+    </div>
+    <div class="explainer explainer-red">
+      <b>How it works:</b> Count keyword occurrences in each page. More = higher rank.
+      Simple to build — but trivially easy to game! 😈
+    </div>
+    <div id="oldResults"></div>
+  </div>
+
+  <!-- RIGHT: PageRank -->
+  <div class="col col-right">
+    <div class="col-head">
+      <div class="col-title">🟢 PageRank Way</div>
+      <div class="col-sub">Links offer a million dollar vote</div>
+    </div>
+    <div class="explainer explainer-green">
+      <b>How it works:</b> Pages trusted by other reputable pages rank higher.
+      A link = a vote of confidence. Quality beats spam! 🏆
+    </div>
+    <div id="prResults"></div>
+  </div>
+</div>
+
+<!-- Link graph -->
+<div class="graph-section" id="graphSection">
+  <div class="graph-box">
+    <h3>🕸️ Web Link Graph — who links to whom?</h3>
+    <div class="graph-nodes" id="graphNodes"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  MiniGoogle 1998 &nbsp;·&nbsp; Demonstrating <b>Term Frequency</b> vs <b>PageRank</b> &nbsp;·&nbsp; Built for learning 🚀
+</footer>
+
+<script>
+/* ─── Dataset ─── */
+const BASE_PAGES = [
+  { id:1, url:"pune-food-guide.com",     text:"Where to eat in Pune - vada pav and biryani and pizza",        links:[2]   },
+  { id:2, url:"best-pizza-pune.com",     text:"Fresh wood-fired pizza made daily - try our cheese pizza",      links:[1,3] },
+  { id:3, url:"college-canteen-blog.com",text:"Student reviews of canteen food and chai and Friday pizza",     links:[2,4] },
+  { id:4, url:"pizza-recipes-home.com",  text:"Make pizza at home - pizza dough and pizza sauce",              links:[2,5] },
+  { id:5, url:"cheap-eats-pune.com",     text:"Good food under 100 rupees - misal and dosa and pizza slices", links:[2]   },
+  { id:6, url:"pizza-pizza-pizza.com",   text:"pizza pizza pizza pizza pizza pizza pizza pizza pizza pizza",   links:[1]   },
+];
+
+let pages = BASE_PAGES.map(p => ({ ...p, links: [...p.links] }));
+let spamAdded = false;
+
+/* ─── PageRank ─── */
+function computePageRank(d = 0.85, iters = 60) {
+  const N = pages.length;
+  let pr = {};
+  pages.forEach(p => pr[p.id] = 1 / N);
+  for (let i = 0; i < iters; i++) {
+    const next = {};
+    pages.forEach(p => {
+      let s = 0;
+      pages.forEach(q => { if (q.links.includes(p.id)) s += pr[q.id] / q.links.length; });
+      next[p.id] = (1 - d) / N + d * s;
+    });
+    pr = next;
+  }
+  return pr;
+}
+
+/* ─── Term Frequency ─── */
+function tf(text, query) {
+  const words  = text.toLowerCase().split(/\W+/);
+  const qwords = query.toLowerCase().split(/\W+/).filter(Boolean);
+  return words.filter(w => qwords.includes(w)).length;
+}
+
+/* ─── Highlight ─── */
+function hl(text, query) {
+  const qw = query.toLowerCase().split(/\W+/).filter(Boolean);
+  return text.replace(/\b(\w+)\b/g, m => qw.includes(m.toLowerCase()) ? `<mark>${m}</mark>` : m);
+}
+
+/* ─── SEARCH ─── */
+function doSearch() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (!query) return;
+
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('resultsGrid').style.display = 'grid';
+  document.getElementById('graphSection').style.display = 'block';
+
+  const sb = document.getElementById('statsBar');
+  sb.style.display = 'block';
+
+  const qw = query.toLowerCase().split(/\W+/).filter(Boolean);
+  const matching = pages.filter(p => qw.some(w => p.text.toLowerCase().includes(w)));
+
+  const pr = computePageRank();
+  const maxPR = Math.max(...Object.values(pr));
+
+  const byTF = [...matching].map(p => ({ ...p, score: tf(p.text, query) })).sort((a, b) => b.score - a.score);
+  const maxTF = byTF.length ? byTF[0].score : 1;
+  const byPR  = [...matching].sort((a, b) => pr[b.id] - pr[a.id]);
+
+  sb.innerHTML = `🔎 <b>${matching.length} pages</b> found for "<b>${query}</b>" &nbsp;·&nbsp; PageRank from ${pages.length * 60},000 random-surfer steps`;
+
+  renderOldWay(byTF, maxTF, query);
+  renderPRWay(byPR, pr, maxPR, query);
+  renderGraph(pr);
+}
+
+function renderOldWay(results, maxTF, query) {
+  document.getElementById('oldResults').innerHTML = results.map((p, i) => {
+    const pct    = Math.round(p.score / maxTF * 100);
+    const isSpam = p.score >= 8;
+    const inlinks = pages.filter(q => q.links.includes(p.id)).length;
+    return `
+    <div class="card">
+      <div class="card-rank rank-red">#${i + 1}</div>
+      <div class="card-url">${p.url}${isSpam ? `<span class="badge badge-spam">⚠️ SPAM</span>` : ''}</div>
+      <div class="card-snippet">${hl(p.text, query)}</div>
+      ${isSpam ? `<div class="spam-notice">🚨 Keyword stuffing detected — same word repeated endlessly.</div>` : ''}
+      <div class="bar-row">
+        <span class="bar-label">🔤 "${query}" count:</span>
+        <div class="bar-track"><div class="bar-fill fill-red" style="width:${pct}%"></div></div>
+        <span class="bar-val" style="color:var(--red)">${p.score}×</span>
+      </div>
+      <div class="link-hint">🔗 Inbound links: <b>${inlinks}</b> — ignored by old way</div>
+    </div>`;
+  }).join('') || '<p style="color:var(--muted);padding:20px 0">No results found.</p>';
+}
+
+function renderPRWay(results, pr, maxPR, query) {
+  document.getElementById('prResults').innerHTML = results.map((p, i) => {
+    const score   = pr[p.id];
+    const pct     = Math.round(score / maxPR * 100);
+    const inlinks = pages.filter(q => q.links.includes(p.id)).length;
+    const trusted = score >= 0.20;
+    return `
+    <div class="card">
+      <div class="card-rank rank-green">#${i + 1}</div>
+      <div class="card-url">${p.url}${trusted ? `<span class="badge badge-trusted">⭐ Trusted</span>` : ''}</div>
+      <div class="card-snippet">${hl(p.text, query)}</div>
+      <div class="bar-row">
+        <span class="bar-label">📊 PageRank score:</span>
+        <div class="bar-track"><div class="bar-fill fill-green" style="width:${pct}%"></div></div>
+        <span class="bar-val" style="color:var(--green)">${(score * 100).toFixed(1)}%</span>
+      </div>
+      <div class="link-hint">🔗 Trusted by <b>${inlinks}</b> page${inlinks !== 1 ? 's' : ''}</div>
+    </div>`;
+  }).join('') || '<p style="color:var(--muted);padding:20px 0">No results found.</p>';
+}
+
+function renderGraph(pr) {
+  document.getElementById('graphNodes').innerHTML = pages.map(p => {
+    const inlinks = pages.filter(q => q.links.includes(p.id)).length;
+    const outUrls = p.links.map(id => { const pg = pages.find(x => x.id === id); return pg ? pg.url : '?'; });
+    return `
+    <div class="g-node" title="Links out → ${outUrls.join(', ') || 'nobody'}">
+      <b>${p.url}</b>
+      <span>PR: ${(pr[p.id] * 100).toFixed(1)}% &nbsp;·&nbsp; ←${inlinks} in &nbsp;·&nbsp; →${p.links.length} out</span>
+    </div>`;
+  }).join('');
+}
+
+function addSpamPages() {
+  if (spamAdded) { alert('Spam pages already added! Search again 🍕'); return; }
+  spamAdded = true;
+  pages.push(
+    { id:7, url:"pizza-is-great-spam.com", text:"pizza pizza pizza pizza pizza pizza pizza pizza buy pizza",          links:[1] },
+    { id:8, url:"spampizza123.com",         text:"pizza pizza pizza pizza pizza pizza pizza pizza pizza pizza pizza",  links:[1] },
+    { id:9, url:"order-pizza-online99.com", text:"pizza delivery order pizza fast pizza pizza pizza pizza pizza now",  links:[1] }
+  );
+  document.getElementById('addBtn').textContent = '✅ Spam Added!';
+  document.getElementById('addBtn').style.background = '#f57c00';
+  if (document.getElementById('resultsGrid').style.display !== 'none') doSearch();
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+window.addEventListener('load', doSearch);
+</script>
+</body>
+</html>
